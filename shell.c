@@ -4,7 +4,11 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
+void getInput();
+void run();
 void showShellMessage();
 void showPrompt();
 
@@ -12,7 +16,7 @@ void showPrompt();
 
 int main(int argc, char** argv)
 {
-    showShellMessage();
+    run();
 
     return 0;
 }
@@ -47,4 +51,35 @@ void showShellMessage()
 void showPrompt()
 {
     printf("%c ", PROMPT_SYM);
+}
+
+/**
+ * Starts the execution of the shell.
+ *
+ * @returns nothing
+ */
+void run()
+{
+    showShellMessage();
+    getInput();
+}
+
+/**
+ * Gets input from the user until the command `exit` is entered.
+ *
+ * @returns nothing
+ */
+void getInput()
+{
+    char* command = "";
+    size_t len = 0;
+
+    do
+    {
+        showPrompt();
+        getline(&command, &len, stdin);
+
+    } while(strcmp(command, "exit\n"));
+
+    free(command);
 }
