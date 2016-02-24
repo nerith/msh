@@ -181,8 +181,6 @@ void runCommand(char* commandString)
     }
     else if(strcmp(arguments[0], "cd") == 0)
     {
-        puts("cd command");
-        printf("Going to %s\n", arguments[1]);
         chdir(arguments[1]);
     }
     else if(strcmp(arguments[0], "help") == 0)
