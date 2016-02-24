@@ -3,7 +3,7 @@
  * 2-11-2016
  */
 
-#include "../include/shellFunctions.h"
+#include "include/shellFunctions.h"
 
 int main(int argc, char** argv)
 {

@@ -1,4 +1,4 @@
-#include "../include/shellFunctions.h"
+#include "include/shellFunctions.h"
 
 // TODO: Make this non-global
 int background = 0;
