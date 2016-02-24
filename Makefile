@@ -1,2 +1,2 @@
 all:
-	gcc -Wall -std=gnu11 shell.c -o shell
+	gcc -Wall -std=gnu11 src/*.c -o shell

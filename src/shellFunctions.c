@@ -1,37 +1,7 @@
-/* Brandon Fairchild
- * The MUSH Shell
- * 2-11-2016
- */
-
-#include <fcntl.h>
-#include <signal.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#include "../include/shellFunctions.h"
 
 // TODO: Make this non-global
 int background = 0;
-
-void getInput();
-void run();
-void parseCommand(char*, char* []);
-void runCommand(char*);
-void showShellMessage();
-void showPrompt();
-
-#define PROMPT_SYM '>'
-#define MAX_ARGUMENTS 21365
-
-int main(int argc, char** argv)
-{
-    run();
-
-    return 0;
-}
 
 /**
  * Displays information about the shell
@@ -146,7 +116,7 @@ void parseCommand(char* command, char* arguments[])
 	    {
 	        background = 1;
 	    }
-	}
+        }
     }
 
     arguments[i] = NULL;
@@ -165,13 +135,13 @@ void runCommand(char* commandString)
     else if(strcmp(arguments[0], "cd") == 0)
     {
         puts("cd command");
-	printf("Going to %s\n", arguments[1]);
-	chdir(arguments[1]);
+        printf("Going to %s\n", arguments[1]);
+        chdir(arguments[1]);
     }
     else if(strcmp(arguments[0], "help") == 0)
     {
-	puts("usage:");
-	puts("exit: exit the shell");
+        puts("usage:");
+        puts("exit: exit the shell");
     }
     else if(strcmp(arguments[0], "exit") != 0)
     {
