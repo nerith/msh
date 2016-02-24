@@ -18,7 +18,7 @@ int background = 0;
 
 void getInput();
 void run();
-char* parseCommand(char*, char* []);
+void parseCommand(char*, char* []);
 void runCommand(char*);
 void showShellMessage();
 void showPrompt();
@@ -101,7 +101,7 @@ void getInput()
  *
  *          i.e. `ls -la` will be stored as { "ls", "-la", NULL }
  */
-char* parseCommand(char* command, char* arguments[])
+void parseCommand(char* command, char* arguments[])
 {
     char* tokenArray[strlen(command)];
     char* token = strtok(command, " ");
@@ -150,15 +150,13 @@ char* parseCommand(char* command, char* arguments[])
     }
 
     arguments[i] = NULL;
-
-    return NULL;
 }
 
 void runCommand(char* commandString)
 {
     // Parse the given command before running it
     char* arguments[2000];
-    char* c = parseCommand(commandString, arguments);
+    parseCommand(commandString, arguments);
 
     if(strcmp(arguments[0], "") == 0 || arguments[0] == NULL)
     {
