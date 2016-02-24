@@ -3,16 +3,22 @@
  * 2-11-2016
  */
 
+#include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
+// TODO: Make this non-global
+int background = 0;
+
 void getInput();
 void run();
-char** parseCommand(char*);
+char* parseCommand(char*, char* []);
 void runCommand(char*);
 void showShellMessage();
 void showPrompt();
@@ -95,7 +101,7 @@ void getInput()
  *
  *          i.e. `ls -la` will be stored as { "ls", "-la", NULL }
  */
-char** parseCommand(char* command)
+char* parseCommand(char* command, char* arguments[])
 {
     char* tokenArray[strlen(command)];
     char* token = strtok(command, " ");
@@ -116,18 +122,14 @@ char** parseCommand(char* command)
 
 	// Reset to the start of the string
 	token = start;
-	
+
 	tokenArray[i] = token;
-	
+
 	token = strtok(NULL, " ");
 	i++;
     }
 
     tokenArray[i] = NULL;
-
-    // Allocate the generated tokens onto the heap so that
-    // they can be accessed later from other functions
-    char** arguments = malloc(i * sizeof(char));
 
     for(i = 0; tokenArray[i] != NULL; i++)
     {
@@ -136,25 +138,31 @@ char** parseCommand(char* command)
 	// are spaces after it
 	if(strcmp(tokenArray[i], "") != 0)
 	{
-	    arguments[i] = (char*)malloc(strlen(tokenArray[i]));
-	    printf("%d, %d\n", i, strlen(tokenArray[i]));
-	    arguments[i] = tokenArray[i];
+	    if(strcmp(tokenArray[i],"&") != 0)
+	    {
+	        arguments[i] = tokenArray[i];
+	    }
+	    else
+	    {
+	        background = 1;
+	    }
 	}
     }
 
     arguments[i] = NULL;
 
-    return arguments;
+    return NULL;
 }
 
-void runCommand(char* command)
+void runCommand(char* commandString)
 {
     // Parse the given command before running it
-    char** arguments = parseCommand(command);
+    char* arguments[2000];
+    char* c = parseCommand(commandString, arguments);
 
-    if(strcmp(command, "") == 0)
+    if(strcmp(arguments[0], "") == 0 || arguments[0] == NULL)
     {
-	return;
+        return;
     }
     else if(strcmp(arguments[0], "cd") == 0)
     {
@@ -176,19 +184,18 @@ void runCommand(char* command)
             char** args = arguments;
             char commandLocation[100] = "/bin/";
 
-            strcat(commandLocation, arguments[0]);
-	    printf("%s\n", commandLocation);
+            strncat(commandLocation, arguments[0], 92);
 
             if(execvp(commandLocation, args) < 0)
             {
                 strcpy(commandLocation, "/usr/bin/");
-                strcat(commandLocation, arguments[0]);
+                strncat(commandLocation, arguments[0], 90);
 
                 // The command was not found in /bin, so maybe the command will
                 // be found in the other location that stores programs, /usr/bin/.
                 if(execvp(commandLocation, args) < 0)
                 {
-                    printf("\x1b[31;1m mush: `%s` - command not found. \x1b[0m\n", command);
+                    printf("\x1b[31;1m mush: `%s` - command not found. \x1b[0m\n", arguments[0]);
                 }
             }
 
@@ -196,10 +203,17 @@ void runCommand(char* command)
         }
         else
         {
-	    // TODO: Implement background processes
-            wait(NULL);
+	    // Check for running a background process
+	    if(!background)
+	    {
+                waitpid(pid, NULL, 0);
+	    }
+	    else
+	    {
+                background = 0;
+                sleep(1);
+                puts("");
+	    }
         }
     }
-
-    // TODO: Deallocate the command array
 }
