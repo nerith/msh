@@ -229,7 +229,7 @@ void runCommand(char* commandString)
 	    {
                 background = 0;
                 sleep(1);
-                puts("");
+                printf("%d\n", pid);
 	    }
         }
     }
