@@ -122,6 +122,47 @@ void parseCommand(char* command, char* arguments[])
     arguments[i] = NULL;
 }
 
+/**
+ * Handles redirection setup for the shell.
+ *
+ * @param tokens     A character string array containing the tokens from parsing
+ * @param index      The current index into the tokens array
+ * @param fid        The file descriptor to modify
+ * @param attributes Flags to open the file with (i.e O_CREAT | O_TRUNC, etc.)
+ *
+ * @returns nothing
+ */
+void handleRedirection(char** tokens, int* index, int fid, int attributes)
+{
+    tokens[*index] = NULL;
+    int fileId = open(tokens[*(index)+1], attributes, 0666);
+    close(fid);
+    dup(fileId);
+    close(fileId);
+    (*index)++;
+}
+
+void redirect(char** tokens)
+{
+    for(int i = 0; tokens[i] != NULL; i++)
+    {
+        if(strcmp(tokens[i], ">") == 0)
+        {
+            handleRedirection(tokens, &i, 1, O_CREAT | O_WRONLY | O_TRUNC);
+        }
+
+        if(strcmp(tokens[i], ">>") == 0)
+        {
+            handleRedirection(tokens, &i, 1, O_WRONLY | O_APPEND);
+        }
+
+        if(strcmp(tokens[i], "<") == 0)
+        {
+            handleRedirection(tokens, &i, 0, O_RDONLY);
+        }
+    }
+}
+
 void runCommand(char* commandString)
 {
     // Parse the given command before running it
@@ -151,6 +192,8 @@ void runCommand(char* commandString)
         {
             char** args = arguments;
             char commandLocation[100] = "/bin/";
+
+            redirect(arguments);
 
             strncat(commandLocation, arguments[0], 92);
 
