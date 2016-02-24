@@ -134,6 +134,12 @@ void parseCommand(char* command, char* arguments[])
  */
 void handleRedirection(char** tokens, int* index, int fid, int attributes)
 {
+    // Check that this isn't the first or last token in the command
+    if(*index == 0 || tokens[(*index)+1] == NULL)
+    {
+        return;
+    }
+
     tokens[*index] = NULL;
     int fileId = open(tokens[*(index)+1], attributes, 0666);
     close(fid);
