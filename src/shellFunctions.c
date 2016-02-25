@@ -1,7 +1,7 @@
 #include "include/shellFunctions.h"
 
-// TODO: Make this non-global
 int background = 0;
+int piping = 0;
 
 /**
  * Displays information about the shell
@@ -60,7 +60,7 @@ void getInput()
         fgets(command, MAX_ARGUMENTS-1, stdin);
         runCommand(command);
 
-    } while(strcmp(command, "exit"));
+    } while(1);
 }
 
 /**
@@ -108,14 +108,23 @@ void parseCommand(char* command, char* arguments[])
 	// are spaces after it
 	if(strcmp(tokenArray[i], "") != 0)
 	{
-	    if(strcmp(tokenArray[i],"&") != 0)
+	    if(strcmp(tokenArray[i],"&") != 0 && strcmp(tokenArray[i], "|") != 0)
 	    {
 	        arguments[i] = tokenArray[i];
 	    }
-	    else
-	    {
-	        background = 1;
-	    }
+            else
+            {
+                if(strcmp(tokenArray[i], "|") == 0)
+                {
+                    piping = 1;
+                    arguments[i] = NULL;
+                }
+	        else if(strcmp(tokenArray[i], "&") == 0)
+	        {
+	            background = 1;
+                    arguments[i] = NULL;
+	        }
+            }
         }
     }
 
@@ -148,6 +157,15 @@ void handleRedirection(char** tokens, int* index, int fid, int attributes)
     (*index)++;
 }
 
+/**
+ * Chooses which I/O redirection to perform and sends arguments based on that
+ * to handleRedirection(). If there is no redirection specified in the command,
+ * nothing will happen.
+ *
+ * @param tokens  A character string array containing the tokens from parsing
+ *
+ * @returns nothing
+ */
 void redirect(char** tokens)
 {
     for(int i = 0; tokens[i] != NULL; i++)
@@ -169,10 +187,129 @@ void redirect(char** tokens)
     }
 }
 
+/**
+ * Executes a command based on the arguments specified. It will first look in
+ * /bin for the command to execute and if it is not there, it will look in
+ * /usr/bin/.
+ *
+ * Otherwise, the shell prints out an error message.
+ *
+ * @param arguments A character string array containing the tokens from parsing
+ *
+ * @returns nothing
+ */
+void execute(char** arguments)
+{
+    char commandLocation[100] = "/bin/";
+    strncat(commandLocation, arguments[0], 93);
+    redirect(arguments);
+
+    if(execvp(commandLocation, arguments) < 0)
+    {
+        strcpy(commandLocation, "/usr/bin/");
+        strncat(commandLocation, arguments[0], 90);
+
+        // The command was not found in /bin, so maybe the command will
+        // be found in the other location that stores programs, /usr/bin/.
+        if(execvp(commandLocation, arguments) < 0)
+        {
+            printf("\x1b[31;1m mush: `%s` - command not found. \x1b[0m\n", arguments[0]);
+        }
+    }
+}
+
+/**
+ * Sends data to a pipe to be read by another process.
+ *
+ * @param fd        An integer array to contain a pair of file descriptors
+ * @param arguments A character array containing the command to execute
+ *
+ * @returns nothing
+ */
+void sendDataToPipe(int fd[], char** arguments)
+{
+    if(fork() == 0)
+    {
+        // Setup the pipe output
+        close(1);
+        dup(fd[1]);
+        close(fd[0]);
+
+        char* firstCommand[MAX_ARGUMENTS];
+        int i;
+        for(i = 0; arguments[i] != NULL; i++)
+        {
+            firstCommand[i] = arguments[i];
+        }
+
+        firstCommand[i++] = NULL;
+        execute(firstCommand);
+        exit(0);
+    }
+    else
+    {
+        wait(NULL);
+    }
+}
+
+/**
+ * Reads data from a pipe that was sent by another process.
+ *
+ * @param fd        An integer array to contain a pair of file descriptors
+ * @param arguments A character array containing the command to execute
+ *
+ * @returns nothing
+ */
+void readDataFromPipe(int fd[], char** arguments)
+{
+    if(fork() == 0)
+    {
+        close(0);
+        dup(fd[0]);
+        close(fd[1]);
+
+        int i;
+        for(i = 0; arguments[i] != NULL; i++)
+        {
+        }
+
+        i++;
+
+        // Check for redirecting the output to a file
+        // i.e. ps aux | grep ^root > file
+        redirect(&arguments[i]);
+
+        char* secondCommand[MAX_ARGUMENTS - i];
+
+        int j;
+        for(j= 0; arguments[i] != NULL; i++, j++)
+        {
+            secondCommand[j] = arguments[i];
+        }
+
+        secondCommand[j++] = NULL;
+        execute(secondCommand);
+        exit(0);
+    }
+    else
+    {
+        wait(NULL);
+        sleep(1);
+    }
+}
+
+/**
+ * Runs the command specified by the user. This is the main starting point
+ * for command execution.
+ *
+ * @param commandString  The command entered into the prompt
+ *
+ * @returns nothing
+ */
 void runCommand(char* commandString)
 {
     // Parse the given command before running it
-    char* arguments[2000];
+    char* arguments[MAX_ARGUMENTS];
     parseCommand(commandString, arguments);
 
     if(strcmp(arguments[0], "") == 0 || arguments[0] == NULL)
@@ -181,7 +318,14 @@ void runCommand(char* commandString)
     }
     else if(strcmp(arguments[0], "cd") == 0)
     {
-        chdir(arguments[1]);
+        if(chdir(arguments[1]) < 0)
+        {
+            printf("%s: No such file or directory\n", arguments[1]);
+        }
+    }
+    else if(strcmp(arguments[0], "exit") == 0)
+    {
+        exit(0);
     }
     else if(strcmp(arguments[0], "help") == 0)
     {
@@ -190,45 +334,39 @@ void runCommand(char* commandString)
     }
     else if(strcmp(arguments[0], "exit") != 0)
     {
-        pid_t pid = fork();
-
-        if(pid == 0)
+        if(piping)
         {
-            char** args = arguments;
-            char commandLocation[100] = "/bin/";
-
-            redirect(arguments);
-
-            strncat(commandLocation, arguments[0], 92);
-
-            if(execvp(commandLocation, args) < 0)
-            {
-                strcpy(commandLocation, "/usr/bin/");
-                strncat(commandLocation, arguments[0], 90);
-
-                // The command was not found in /bin, so maybe the command will
-                // be found in the other location that stores programs, /usr/bin/.
-                if(execvp(commandLocation, args) < 0)
-                {
-                    printf("\x1b[31;1m mush: `%s` - command not found. \x1b[0m\n", arguments[0]);
-                }
-            }
-
-            exit(0);
+            int pipeId[2];
+            pipe(pipeId);
+            sendDataToPipe(pipeId, arguments);
+            close(pipeId[1]);
+            readDataFromPipe(pipeId, arguments);
+            close(pipeId[0]);
+            piping = 0;
         }
         else
         {
-	    // Check for running a background process
-	    if(!background)
-	    {
-                waitpid(pid, NULL, 0);
-	    }
-	    else
-	    {
-                background = 0;
-                sleep(1);
-                printf("%d\n", pid);
-	    }
+            pid_t pid = fork();
+
+            if(pid == 0)
+            {
+                execute(arguments);
+                exit(0);
+            }
+            else
+            {
+	        // Check for running a background process
+	        if(!background)
+	        {
+                    waitpid(pid, NULL, 0);
+	        }
+	        else
+	        {
+                    background = 0;
+                    sleep(1);
+                    printf("%d\n", pid);
+	        }
+            }
         }
     }
 }

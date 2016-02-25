@@ -22,12 +22,15 @@ struct Command
 
 typedef struct Command Command;
 
+void execute(char**);
 void getInput();
 void handleRedirection(char**, int*, int, int);
-void run();
 void parseCommand(char*, char* []);
+void readDataFromPipe(int[], char**);
 void redirect(char* []);
+void run();
 void runCommand(char*);
+void sendDataToPipe(int[], char**);
 void showShellMessage();
 void showPrompt();
 
