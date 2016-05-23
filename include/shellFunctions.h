@@ -29,7 +29,9 @@ void runCommand(char*, shellInternal*);
 void sendDataToPipe( char**, shellInternal*);
 void showShellMessage();
 void showPrompt();
+
 void clearData(void*, int);
+int strCompare(char* str, char* testStr);
 
 void runPipeline(char**, shellInternal*);
 

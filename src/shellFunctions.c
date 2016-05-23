@@ -329,13 +329,15 @@ void runCommand(char* commandString, shellInternal* env)
     char* arguments[MAX_ARGUMENTS];
     parseCommand(commandString, arguments, env);
 
-    if(arguments[0] == 0 || strcmp(arguments[0], "") == 0)
+    char* command = arguments[0];
+
+    if(command == 0 || strCompare(command, ""))
     {
         return;
     }
-    else if(strcmp(arguments[0], "cd") == 0)
+    else if(strCompare(command, "cd"))
     {
-	if(arguments[1] == NULL || strcmp(arguments[1], "~") == 0)
+	if(arguments[1] == NULL || strCompare(arguments[1], "~"))
 	{
 	    arguments[1] = getenv("HOME");
 	}
@@ -345,12 +347,12 @@ void runCommand(char* commandString, shellInternal* env)
             printf("%s: No such file or directory\n", arguments[1]);
         }
     }
-    else if(strcmp(arguments[0], "exit") == 0)
+    else if(strCompare(command, "exit"))
     {
 	free(env);
         exit(0);
     }
-    else if(strcmp(arguments[0], "help") == 0)
+    else if(strCompare(command, "help"))
     {
         puts("usage:");
         puts("exit: exit the shell");
@@ -386,6 +388,19 @@ void runCommand(char* commandString, shellInternal* env)
     }
 
     clearData(arguments, MAX_ARGUMENTS);
+}
+
+/**
+ * Checks for the equality of two strings
+ *
+ * @param str     The expected value of the string
+ * @param testStr The string that is to be tested against the expected value
+ *
+ * @returns 1 if the strings are equal. 0 if the strings are not equal.
+ */
+int strCompare(char* str, char* testStr)
+{
+    return strcmp(str, testStr) == 0;
 }
 
 /**
