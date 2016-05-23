@@ -1,6 +1,5 @@
-/* Brandon Fairchild
- * The MUSH Shell
- * 2-11-2016
+/*
+ * The msh shell
  */
 
 #include "include/shellFunctions.h"
