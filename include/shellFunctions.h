@@ -1,6 +1,7 @@
 #ifndef _SHELL_H
 #define _SHELL_H
 
+#include <ctype.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -11,28 +12,26 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-struct Command
-{
-    char** tokens;
-    int redirection;
+typedef struct shellInternal {
+    int piping;
     int background;
-    char* inputFile;
-    char* outputFile;
-};
-
-typedef struct Command Command;
+    int numberOfPipes;
+} shellInternal;
 
 void execute(char**);
 void getInput();
 void handleRedirection(char**, int*, int, int);
-void parseCommand(char*, char* []);
-void readDataFromPipe(int[], char**);
-void redirect(char* []);
+void parseCommand(char*, char**, shellInternal*);
+void readDataFromPipe(int[], char**, shellInternal*);
+void redirect(char**);
 void run();
-void runCommand(char*);
-void sendDataToPipe(int[], char**);
+void runCommand(char*, shellInternal*);
+void sendDataToPipe( char**, shellInternal*);
 void showShellMessage();
 void showPrompt();
+void clearData(void*, int);
+
+void runPipeline(char**, shellInternal*);
 
 #define PROMPT_SYM '>'
 #define MAX_ARGUMENTS 21365
