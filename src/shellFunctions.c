@@ -370,6 +370,7 @@ void runCommand(char* commandString, shellInternal* env)
             if(pid == 0)
             {
                 execute(arguments);
+                exit(0);
             }
             else
             {
