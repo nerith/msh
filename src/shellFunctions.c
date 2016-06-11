@@ -354,8 +354,9 @@ void runCommand(char* commandString, shellInternal* env)
     }
     else if(strCompare(command, "help"))
     {
-        puts("usage:");
+        puts("Usage:\n");
         puts("exit: exit the shell");
+        puts("help: get a listing of the builtin commands\n");
     }
     else
     {
