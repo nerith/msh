@@ -17,6 +17,7 @@ msh currently supports command input, I/O redirection, and pipelining.
 Future improvements may include:
 
 * Command history
+* Tab completion
 * Scripting support
 * Network pipes
 
