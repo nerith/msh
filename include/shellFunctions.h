@@ -19,6 +19,7 @@ typedef struct shellInternal {
 } shellInternal;
 
 void execute(char**);
+char* generatePrompt();
 void getInput();
 void handleRedirection(char**, int*, int, int);
 void parseCommand(char*, char**, shellInternal*);
@@ -28,7 +29,6 @@ void run();
 void runCommand(char*, shellInternal*);
 void sendDataToPipe( char**, shellInternal*);
 void showShellMessage();
-void showPrompt();
 
 void clearData(void*, int);
 int strCompare(char* str, char* testStr);

@@ -1,4 +1,6 @@
 #include "include/shellFunctions.h"
+#include <editline/readline.h>
+#include <editline/history.h>
 
 /**
  * Displays information about the shell
@@ -21,23 +23,26 @@ void showShellMessage()
 }
 
 /**
- * Displays the prompt symbol to let the user know they can enter
+ * Generates the prompt that lets the user know they can enter
  * a new command.
  *
  * By default, the prompt symbol is provided by PROMPT_SYM.
  *
  * @returns nothing
  */
-void showPrompt()
+char* generatePrompt()
 {
     char user[100];
     char hostname[31];
     char* promptString = "%s@%s%c ";
+    char* prompt = malloc(sizeof(char*));
 
     getlogin_r(user, 99);
     gethostname(hostname, 30);
 
-    printf(promptString, user, hostname, PROMPT_SYM);
+    sprintf(prompt, promptString, user, hostname, PROMPT_SYM);
+
+    return prompt;
 }
 
 /**
@@ -58,17 +63,18 @@ void run()
  */
 void getInput()
 {
-    char command[MAX_ARGUMENTS];
     shellInternal* env = malloc(sizeof(shellInternal));
 
     do
     {
-        showPrompt();
-        fgets(command, MAX_ARGUMENTS-1, stdin);
+        char* prompt = generatePrompt();
+        char* command = readline(prompt);
+
+        add_history(command);
         runCommand(command, env);
 
-	// Clear the previous command
-	clearData(command, MAX_ARGUMENTS);
+        free(prompt);
+        free(command);
 
     } while(1);
 
