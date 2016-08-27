@@ -129,13 +129,13 @@ void parseCommand(char* command, char** arguments, shellInternal* env)
         // Exclude empty strings from the returned array
         // This could cause commands such as `ls` to be passed nothing if there
         // are spaces after it
-        if(strcmp(tokenArray[i], "") != 0)
+        if(!strCompare(tokenArray[i], ""))
         {
-            if(strcmp(tokenArray[i], "&") != 0 && strcmp(tokenArray[i], "|") != 0)
+            if(!strCompare(tokenArray[i], "&") && !strCompare(tokenArray[i], "|"))
             {
 		if(tokenArray[i][0] == '$')
 		{
-		    if(strcmp(tokenArray[i], "$0") == 0)
+		    if(strCompare(tokenArray[i], "$0"))
 		    {
 		        tokenArray[i] = "msh";
 		    }
@@ -149,13 +149,13 @@ void parseCommand(char* command, char** arguments, shellInternal* env)
             }
             else
             {
-                if(strcmp(tokenArray[i], "|") == 0)
+                if(strCompare(tokenArray[i], "|"))
                 {
                     env->piping = 1;
 		    env->numberOfPipes++;
                     arguments[i] = NULL;
                 }
-                else if(strcmp(tokenArray[i], "&") == 0)
+                else if(strCompare(tokenArray[i], "&"))
                 {
                     env->background = 1;
                     arguments[i] = NULL;
@@ -208,17 +208,17 @@ void redirect(char** tokens)
 {
     for(int i = 0; tokens[i] != NULL; i++)
     {
-        if(strcmp(tokens[i], ">") == 0)
+        if(strCompare(tokens[i], ">"))
         {
             handleRedirection(tokens, &i, 1, O_CREAT | O_WRONLY | O_TRUNC);
         }
 
-        if(strcmp(tokens[i], ">>") == 0)
+        if(strCompare(tokens[i], ">>"))
         {
             handleRedirection(tokens, &i, 1, O_WRONLY | O_APPEND);
         }
 
-        if(strcmp(tokens[i], "<") == 0)
+        if(strCompare(tokens[i], "<"))
         {
             handleRedirection(tokens, &i, 0, O_RDONLY);
         }
@@ -408,7 +408,7 @@ void runCommand(char* commandString, shellInternal* env)
  */
 int strCompare(char* str, char* testStr)
 {
-    return strcmp(str, testStr) == 0;
+    return strcmp(str, testStr) == 0 ? 1 : 0;
 }
 
 /**
