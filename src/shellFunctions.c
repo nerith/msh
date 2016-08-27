@@ -153,13 +153,13 @@ void parseCommand(char* command, char** arguments, shellInternal* env)
                 {
                     env->piping = 1;
 		    env->numberOfPipes++;
-                    arguments[i] = NULL;
                 }
                 else if(strCompare(tokenArray[i], "&"))
                 {
                     env->background = 1;
-                    arguments[i] = NULL;
                 }
+
+                arguments[i] = NULL;
             }
         }
     }
