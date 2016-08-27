@@ -99,11 +99,11 @@ void parseCommand(char* command, char** arguments, shellInternal* env)
 
     int i = 0;
 
-    while(token != NULL)
+    while(token)
     {
         char* start = token;
 
-        for(; *token != '\0'; token++)
+        while(*(token++))
         {
             if(*token == '\n')
             {
