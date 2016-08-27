@@ -1,4 +1,5 @@
 #include "include/shellFunctions.h"
+#include "include/builtins.h"
 #include <editline/readline.h>
 #include <editline/history.h>
 
@@ -337,34 +338,7 @@ void runCommand(char* commandString, shellInternal* env)
 
     char* command = arguments[0];
 
-    if(command == 0 || strCompare(command, ""))
-    {
-        return;
-    }
-    else if(strCompare(command, "cd"))
-    {
-	if(arguments[1] == NULL || strCompare(arguments[1], "~"))
-	{
-	    arguments[1] = getenv("HOME");
-	}
-
-        if(chdir(arguments[1]) < 0)
-        {
-            printf("%s: No such file or directory\n", arguments[1]);
-        }
-    }
-    else if(strCompare(command, "exit"))
-    {
-	free(env);
-        exit(0);
-    }
-    else if(strCompare(command, "help"))
-    {
-        puts("Usage:\n");
-        puts("exit: exit the shell");
-        puts("help: get a listing of the builtin commands\n");
-    }
-    else
+    if(!executeBuiltin(command, arguments, env))
     {
         if(env->piping)
         {
