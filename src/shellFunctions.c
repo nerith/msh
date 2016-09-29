@@ -288,7 +288,7 @@ void sendDataToPipe(char** arguments, shellInternal* env)
 
 	env->numberOfPipes--;
 
-	for(; *arguments != NULL; arguments++);
+	while(*(++arguments));
 
 	sendDataToPipe(++arguments, env);
     }
