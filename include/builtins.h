@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "include/shellFunctions.h"
 
-int executeBuiltin(char* command, char** arguments, shellInternal* env);
+#include "shell.h"
+
+int exec_builtin(char* command, char** arguments, env_t* env);
 
 #endif

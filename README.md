@@ -28,9 +28,9 @@ To build the code on Linux-based systems, just run
 
 `make`
 
-This will generate an executable named `shell`.
+This will generate an executable named `msh`.
 
 **Note:** If you are not using the gcc compiler, or are on a BSD-based
 system, you can compile msh using the following command:
 
-`clang src/*.c -I . -o shell -leditline`
+`make CC=clang`
