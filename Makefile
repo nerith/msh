@@ -1,9 +1,18 @@
-CC=gcc
-OPTIONS= -Wall -std=gnu11
-SRC_FILES=src/*.c
-OUTPUT=shell
-INCLUDE_DIR=.
-LIBS=-leditline
+TARGET = msh
 
-all:
-	$(CC) $(OPTIONS) $(SRC_FILES) -o $(OUTPUT) -I $(INCLUDE_DIR) $(LIBS)
+SRCS = src/*.c
+INCLUDE = include
+LIBS = -leditline
+
+CFLAGS = -I $(INCLUDE)
+CC = gcc
+
+override CC += $(CFLAGS)
+
+all: build
+
+build:
+	$(CC) $(LIBS) $(SRCS) -o $(TARGET)
+
+clean:
+	rm -f $(TARGET)

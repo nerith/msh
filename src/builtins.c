@@ -1,51 +1,48 @@
-#include "include/builtins.h"
+#include <string.h>
 
-/**
- * Executes a builtin command.
- *
- * @param command    The command to execute
- * @param arguments  The arguments for the command
- * @param env        The shell's environment
- *
- * @return The status of execution (i.e. whether or not the builtin command
- *         was found.
- */
-int executeBuiltin(char* command, char** arguments, shellInternal* env)
-{
-    if(command == 0 || strCompare("", command))
-    {
-        return 1;
-    }
+#include "builtins.h"
 
-    if(strCompare("cd", command))
-    {
-        char* dir = arguments[1];
+#define builtin_handler(x) void builtin_##x(char *cmd, char **args, env_t *env)
 
-        if(dir == NULL || strCompare(dir, "~"))
-        {
-	    dir = getenv("HOME");
-        }
+struct builtin {
+  char *name;
+  void (*handler) (char*, char**, env_t*);
+};
 
-        if(chdir(dir) < 0)
-        {
-            printf("cd: No such file or directory\n");
-        }
-    }
-    else if(strCompare("exit", command))
-    {
-        free(env);
-        exit(0);
-    }
-    else if(strCompare("help", command))
-    {
-        puts("Usage:\n");
-        puts("exit: exit the shell");
-        puts("help: get a listing of the builtin commands\n");
-    }
-    else
-    {
-        return 0;
-    }
+builtin_handler(cd) {
+  char *dir = args[1];
 
-    return 1;
+  if(dir == NULL || !strcmp(dir, "~"))
+    dir = getenv("HOME");
+
+  if(chdir(dir) < 0)
+    printf("cd: No such file or directory\n");
+}
+
+builtin_handler(exit) {
+  exit(0);
+}
+
+builtin_handler(help) {
+  puts("Usage:\n\nexit: exit the shell\nhelp: get a listing of the builtin cmds\n");
+}
+
+struct builtin builtins[] = {
+  { "cd",   &builtin_cd   },
+  { "exit", &builtin_exit },
+  { "help", &builtin_help }
+};
+
+int exec_builtin(char *cmd, char **args, env_t *env) {
+  int i;
+
+  for(i = 0; i < sizeof(builtins) / sizeof(struct builtin); i++) {
+    if(strcmp(builtins[i].name, cmd))
+      continue;
+
+    builtins[i].handler(cmd, args, env);
+    return 0;
+  }
+
+  return -1;
 }
